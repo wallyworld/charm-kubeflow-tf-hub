@@ -1,0 +1,19 @@
+name: kubeflow-jupyterhub
+summary: JupyterHub is a multi-user hub of Jupyter notebooks.
+maintainers:
+  - Juju Developers <juju@lists.ubuntu.com>
+description: |
+  JupyterHub, a multi-user Hub, spawns, manages, and proxies multiple
+  instances of the single-user Jupyter notebook server. JupyterHub can
+  be used to serve notebooks to a class of students, a corporate data
+  science group, or a scientific research group.
+
+  This charm deploys JupyterHub configured for use with Kubeflow to
+  Kubernetes models in Juju.
+tags:
+  - machine-learning
+  - ai
+  - bigdata
+  - kubeflow
+series:
+  - kubernetes
