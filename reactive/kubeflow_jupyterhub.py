@@ -16,11 +16,13 @@ def start_charm():
     pod_spec_set(yaml.dump({
         'containers': [
             {
-                'name': 'kubeflow-jupyterhub',
+                'name': 'tf-hub',
                 'image': 'gcr.io/kubeflow/jupyterhub-k8s:1.0.1',
                 'ports': [
-                    {'containerPort': 8000},
-                    {'containerPort': 8081},
+                    {
+                        'name': 'hub',
+                        'containerPort': 8000,
+                    },
                 ],
                 'files': [
                     {

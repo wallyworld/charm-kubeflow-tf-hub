@@ -1,1 +1,5 @@
-{}
+options:
+  dummy:
+    type: boolean
+    default: false
+    description: Not used
