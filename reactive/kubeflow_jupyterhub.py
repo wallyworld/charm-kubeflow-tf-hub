@@ -12,12 +12,18 @@ from charms.layer.basic import pod_spec_set
 def start_charm():
     layer.status.maintenance('configuring container')
 
-    config_file = Path('files/jupyterhub_config.py')
+    config_src = Path('files/jupyterhub_config.py')
+    config_dst = Path('/etc/config/jupyterhub_config.py')
     pod_spec_set(yaml.dump({
         'containers': [
             {
-                'name': 'tf-hub',
+                'name': 'jupyterhub',
                 'image': 'gcr.io/kubeflow/jupyterhub-k8s:1.0.1',
+                'command': [
+                    'jupyterhub',
+                    '-f',
+                    str(config_dst),
+                ],
                 'ports': [
                     {
                         'name': 'hub',
@@ -27,9 +33,9 @@ def start_charm():
                 'files': [
                     {
                         'name': 'configs',
-                        'mountPath': '/etc/jupyterhub',
+                        'mountPath': str(config_dst.parent),
                         'files': {
-                            'jupyterhub_config.py': config_file.read_text(),
+                            'jupyterhub_config.py': config_src.read_text(),
                         },
                     },
                 ],
