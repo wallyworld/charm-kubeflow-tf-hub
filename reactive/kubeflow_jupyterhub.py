@@ -29,6 +29,10 @@ def start_charm():
                         'name': 'hub',
                         'containerPort': 8000,
                     },
+                    {
+                        'name': 'api',
+                        'containerPort': 8081,
+                    },
                 ],
                 'files': [
                     {
