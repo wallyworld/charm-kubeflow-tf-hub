@@ -10,7 +10,7 @@ from charms.layer.basic import pod_spec_set
 
 @when_not('charm.kubeflow-jupyterhub.started')
 def start_charm():
-    layer.status.maintenance('configuring jupyterhub container')
+    layer.status.maintenance('configuring container')
 
     config_file = Path('files/jupyterhub_config.py')
     pod_spec_set(yaml.dump({
@@ -37,5 +37,5 @@ def start_charm():
         ],
     }))
 
-    layer.status.active('ready')
+    layer.status.maintenance('creating container')
     set_flag('charm.kubeflow-jupyterhub.started')
