@@ -94,6 +94,9 @@ c.KubeSpawner.args = ['--allow-root']
 c.KubeSpawner.start_timeout = 60 * 30
 # Increase timeout to 5 minutes to avoid HTTP 500 errors on JupyterHub
 c.KubeSpawner.http_timeout = 60 * 5
+# override API hostname since it doesn't match the pod name
+c.KubeSpawner.hub_connect_ip = '{{k8s_service_name}}'  # not actually honored :(
+c.KubeSpawner.args.append('--hub-api-url=http://{{k8s_service_name}}:8081/hub/api')
 
 ###################################################
 ### Persistent volume options

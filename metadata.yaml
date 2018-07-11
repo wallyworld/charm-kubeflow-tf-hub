@@ -9,7 +9,7 @@ description: |
   science group, or a scientific research group.
 
   This charm deploys JupyterHub configured for use with Kubeflow to
-  Kubernetes models in Juju.
+  Kubernetes models in Juju (a.k.a. the tf-hub component).
 tags:
   - machine-learning
   - ai
