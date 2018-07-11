@@ -1,4 +1,4 @@
-repo: https://github.com/juju-solutions/charm-kubeflow-jupyterhub.git
+repo: https://github.com/juju-solutions/charm-kubeflow-tf-hub.git
 includes:
   - "layer:caas-base"
   - "layer:status"

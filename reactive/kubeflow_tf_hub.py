@@ -10,7 +10,7 @@ from charms import layer
 from charms.layer.basic import pod_spec_set
 
 
-@when_not('charm.kubeflow-jupyterhub.started')
+@when_not('charm.kubeflow-tf-hub.started')
 def start_charm():
     layer.status.maintenance('configuring container')
 
@@ -27,7 +27,7 @@ def start_charm():
     pod_spec_set(yaml.dump({
         'containers': [
             {
-                'name': 'jupyterhub',
+                'name': 'tf-hub',
                 'image': 'gcr.io/kubeflow/jupyterhub-k8s:1.0.1',
                 'command': [
                     'jupyterhub',
@@ -58,4 +58,4 @@ def start_charm():
     }))
 
     layer.status.maintenance('creating container')
-    set_flag('charm.kubeflow-jupyterhub.started')
+    set_flag('charm.kubeflow-tf-hub.started')
