@@ -98,33 +98,31 @@ c.KubeSpawner.http_timeout = 60 * 5
 c.KubeSpawner.hub_connect_ip = '{{k8s_service_name}}'  # not actually honored :(
 c.KubeSpawner.args.append('--hub-api-url=http://{{k8s_service_name}}:8081/hub/api')
 
+{% if config['persistent-storage'] -%}
 ###################################################
 ### Persistent volume options
 ###################################################
-# Using persistent storage requires a default storage class.
-# TODO(jlewi): Verify this works on minikube.
-# TODO(jlewi): Should we set c.KubeSpawner.singleuser_fs_gid = 1000
-# see https://github.com/kubeflow/kubeflow/pull/22#issuecomment-350500944
-pvc_mount = os.environ.get('NOTEBOOK_PVC_MOUNT')
-if pvc_mount and pvc_mount != 'null':
-    c.KubeSpawner.user_storage_pvc_ensure = True
-    # How much disk space do we want?
-    c.KubeSpawner.user_storage_capacity = '10Gi'
-    c.KubeSpawner.pvc_name_template = 'claim-{username}{servername}'
-    c.KubeSpawner.volumes = [
-      {
-        'name': 'volume-{username}{servername}',
-        'persistentVolumeClaim': {
-          'claimName': 'claim-{username}{servername}'
-        }
-      }
-    ]
-    c.KubeSpawner.volume_mounts = [
-      {
-        'mountPath': pvc_mount,
-        'name': 'volume-{username}{servername}'
-      }
-    ]
+c.KubeSpawner.user_storage_pvc_ensure = True
+c.KubeSpawner.user_storage_capacity = '{{config['persistent-storage']}}'
+{% if config['storage-class'] -%}
+c.KubeSpawner.storage_class = '{{config['storage-class']}}'
+{%- endif %}
+c.KubeSpawner.pvc_name_template = 'claim-{username}{servername}'
+c.KubeSpawner.volumes = [
+  {
+    'name': 'volume-{username}{servername}',
+    'persistentVolumeClaim': {
+      'claimName': 'claim-{username}{servername}'
+    }
+  }
+]
+c.KubeSpawner.volume_mounts = [
+  {
+    'mountPath': '/home/jovyan',
+    'name': 'volume-{username}{servername}'
+  }
+]
+{%- endif %}
 
 ######## Authenticator ######
 c.JupyterHub.authenticator_class = 'dummyauthenticator.DummyAuthenticator'

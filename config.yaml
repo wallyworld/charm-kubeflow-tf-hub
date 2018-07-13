@@ -1,5 +1,16 @@
 options:
-  dummy:
-    type: boolean
-    default: false
-    description: Not used
+  persistent-storage:
+    type: string
+    default: ''
+    description: |
+      If set, a persistent volume claim will be created for each user
+      notebook with the given capacity.  For example, a value of '10G'
+      will attach 10 gigabytes of storage to each notebook.  This requires
+      a storage class to be defined, and if the 'storage-class' option is
+      not set, a storage class to be marked as default.
+  storage-class:
+    type: string
+    default: ''
+    description: |
+      Storage class name to use instead of the default storage class
+      when creating PVCs per the 'persistent-storage' option.
