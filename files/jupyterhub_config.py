@@ -118,10 +118,12 @@ c.KubeSpawner.volumes = [
 ]
 c.KubeSpawner.volume_mounts = [
   {
-    'mountPath': '/home/jovyan',
+    'mountPath': '/home/jovyan/work',
     'name': 'volume-{username}{servername}'
   }
 ]
+# set the group to "users" ("jovyan" doesn't exist)
+c.KubeSpawner.singleuser_fs_gid = 100
 {%- endif %}
 
 ######## Authenticator ######
