@@ -2,17 +2,39 @@ import yaml
 from pathlib import Path
 
 from charmhelpers.core import hookenv
+from charmhelpers.core import unitdata
 from charms.reactive import set_flag
-from charms.reactive import when_not
+from charms.reactive import when, when_not
 from charms.templating.jinja2 import render
 
 from charms import layer
 from charms.layer.basic import pod_spec_set
 
 
+@when_not('charm.kubeflow-tf-hub.image.available')
+def get_image():
+    layer.status.maintenance('fetching container image')
+    try:
+        image_info_filename = hookenv.resource_get('jupyterhub-image')
+        if image_info_filename:
+            raise ValueError()
+        image_info = yaml.safe_load(Path(image_info_filename).read_text())
+        if not image_info:
+            raise ValueError()
+    except Exception:
+        layer.status.blocked('unable to fetch container image')
+    else:
+        unitdata.kv().set('charm.kubeflow-tf-hub.image-info', image_info)
+        set_flag('charm.kubeflow-tf-hub.image.available')
+
+
+@when('charm.kubeflow-tf-hub.image.available')
 @when_not('charm.kubeflow-tf-hub.started')
 def start_charm():
     layer.status.maintenance('configuring container')
+
+    charm_config = hookenv.config()
+    image_info = unitdata.kv().get('charm.kubeflow-tf-hub.image-info')
 
     config_src = Path('files/jupyterhub_config.py')
     config_dst = Path('/etc/config/jupyterhub_config.py')
@@ -24,11 +46,16 @@ def start_charm():
     config_data = render(template=config_src.read_text(), context={
         'k8s_service_name': 'juju-{}'.format(application_name),
     })
+
     pod_spec_set(yaml.dump({
         'containers': [
             {
                 'name': 'tf-hub',
-                'image': 'gcr.io/kubeflow/jupyterhub-k8s:1.0.1',
+                'imageDetails': {
+                    'imagePath': image_info['registrypath'],
+                    'username': image_info['username'],
+                    'password': image_info['password'],
+                },
                 'command': [
                     'jupyterhub',
                     '-f',
@@ -44,6 +71,11 @@ def start_charm():
                         'containerPort': 8081,
                     },
                 ],
+                'config': {
+                    'CLOUD': '',  # is there a way to detect this?
+                    'REGISTRY': charm_config['notebook-registry'],
+                    'REPO_NAME': charm_config['notebook-repo'],
+                },
                 'files': [
                     {
                         'name': 'configs',

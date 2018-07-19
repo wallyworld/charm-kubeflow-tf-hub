@@ -5,22 +5,26 @@ from kubespawner.spawner import KubeSpawner
 from jhub_remote_user_authenticator.remote_user_auth import RemoteUserAuthenticator
 from oauthenticator.github import GitHubOAuthenticator
 
+
 class KubeFormSpawner(KubeSpawner):
 
-  # relies on HTML5 for image datalist
-  def _options_form_default(self):
-    return '''
+    # relies on HTML5 for image datalist
+    def _options_form_default(self):
+        global registry, repoName
+        return '''
     <label for='image'>Image</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
     <input list="image" name="image" placeholder='repo/image:tag'>
     <datalist id="image">
-      <option value="gcr.io/kubeflow-images-public/tensorflow-1.4.1-notebook-cpu:v20180419-0ad94c4e">
-      <option value="gcr.io/kubeflow-images-public/tensorflow-1.4.1-notebook-gpu:v20180419-0ad94c4e">
-      <option value="gcr.io/kubeflow-images-public/tensorflow-1.5.1-notebook-cpu:v20180419-0ad94c4e">
-      <option value="gcr.io/kubeflow-images-public/tensorflow-1.5.1-notebook-gpu:v20180419-0ad94c4e">
-      <option value="gcr.io/kubeflow-images-public/tensorflow-1.6.0-notebook-cpu:v20180419-0ad94c4e">
-      <option value="gcr.io/kubeflow-images-public/tensorflow-1.6.0-notebook-gpu:v20180419-0ad94c4e">
-      <option value="gcr.io/kubeflow-images-public/tensorflow-1.7.0-notebook-cpu:v20180419-0ad94c4e">
-      <option value="gcr.io/kubeflow-images-public/tensorflow-1.7.0-notebook-gpu:v20180419-0ad94c4e">
+      <option value="{0}/{1}/tensorflow-1.4.1-notebook-cpu:v0.2.1">
+      <option value="{0}/{1}/tensorflow-1.4.1-notebook-gpu:v0.2.1">
+      <option value="{0}/{1}/tensorflow-1.5.1-notebook-cpu:v0.2.1">
+      <option value="{0}/{1}/tensorflow-1.5.1-notebook-gpu:v0.2.1">
+      <option value="{0}/{1}/tensorflow-1.6.0-notebook-cpu:v0.2.1">
+      <option value="{0}/{1}/tensorflow-1.6.0-notebook-gpu:v0.2.1">
+      <option value="{0}/{1}/tensorflow-1.7.0-notebook-cpu:v0.2.1">
+      <option value="{0}/{1}/tensorflow-1.7.0-notebook-gpu:v0.2.1">
+      <option value="{0}/{1}/tensorflow-1.8.0-notebook-cpu:v0.2.1">
+      <option value="{0}/{1}/tensorflow-1.8.0-notebook-gpu:v0.2.1">
     </datalist>
     <br/><br/>
 
@@ -33,48 +37,56 @@ class KubeFormSpawner(KubeSpawner):
     <br/><br/>
 
     <label for='extra_resource_limits'>Extra Resource Limits</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-    <input name='extra_resource_limits' placeholder='{&apos;nvidia.com/gpu&apos;: &apos;3&apos;}'></input>
+    <input name='extra_resource_limits' placeholder='{{&quot;nvidia.com/gpu&quot;: 3}}'></input>
     <br/><br/>
-    '''
+    '''.format(registry, repoName)
 
-  def options_from_form(self, formdata):
-    options = {}
-    options['image'] = formdata.get('image', [''])[0].strip()
-    options['cpu_guarantee'] = formdata.get('cpu_guarantee', [''])[0].strip()
-    options['mem_guarantee'] = formdata.get('mem_guarantee', [''])[0].strip()
-    options['extra_resource_limits'] = formdata.get('extra_resource_limits', [''])[0].strip()
-    return options
+    def options_from_form(self, formdata):
+        options = {}
+        options['image'] = formdata.get('image', [''])[0].strip()
+        options['cpu_guarantee'] = formdata.get(
+            'cpu_guarantee', [''])[0].strip()
+        options['mem_guarantee'] = formdata.get(
+            'mem_guarantee', [''])[0].strip()
+        options['extra_resource_limits'] = formdata.get(
+            'extra_resource_limits', [''])[0].strip()
+        return options
 
-  @property
-  def singleuser_image_spec(self):
-    image = 'gcr.io/kubeflow/tensorflow-notebook-cpu'
-    if self.user_options.get('image'):
-      image = self.user_options['image']
-    return image
+    @property
+    def singleuser_image_spec(self):
+        global cloud
+        if cloud == 'ack':
+            image = 'registry.aliyuncs.com/kubeflow-images-public/tensorflow-notebook-cpu'
+        else:
+            image = 'gcr.io/kubeflow-images-public/tensorflow-1.8.0-notebook-cpu:v0.2.1'
+        if self.user_options.get('image'):
+            image = self.user_options['image']
+        return image
 
-  @property
-  def cpu_guarantee(self):
-    cpu = '500m'
-    if self.user_options.get('cpu_guarantee'):
-      cpu = self.user_options['cpu_guarantee']
-    return cpu
+    @property
+    def cpu_guarantee(self):
+        cpu = '500m'
+        if self.user_options.get('cpu_guarantee'):
+            cpu = self.user_options['cpu_guarantee']
+        return cpu
 
-  @property
-  def mem_guarantee(self):
-    mem = '1Gi'
-    if self.user_options.get('mem_guarantee'):
-      mem = self.user_options['mem_guarantee']
-    return mem
+    @property
+    def mem_guarantee(self):
+        mem = '1Gi'
+        if self.user_options.get('mem_guarantee'):
+            mem = self.user_options['mem_guarantee']
+        return mem
 
-  @property
-  def extra_resource_limits(self):
-    extra = ''
-    if self.user_options.get('extra_resource_limits'):
-      extra = json.loads(self.user_options['extra_resource_limits'])
-    return extra
+    @property
+    def extra_resource_limits(self):
+        extra = ''
+        if self.user_options.get('extra_resource_limits'):
+            extra = json.loads(self.user_options['extra_resource_limits'])
+        return extra
+
 
 ###################################################
-### JupyterHub Options
+# JupyterHub Options
 ###################################################
 c.JupyterHub.ip = '0.0.0.0'
 c.JupyterHub.hub_ip = '0.0.0.0'
@@ -84,19 +96,32 @@ c.JupyterHub.cleanup_servers = False
 ###################################################
 
 ###################################################
-### Spawner Options
+# Spawner Options
 ###################################################
+cloud = os.environ.get('CLOUD_NAME')
+registry = os.environ.get('REGISTRY')
+repoName = os.environ.get('REPO_NAME')
 c.JupyterHub.spawner_class = KubeFormSpawner
-c.KubeSpawner.singleuser_image_spec = 'gcr.io/kubeflow/tensorflow-notebook'
+c.KubeSpawner.singleuser_image_spec = '{0}/{1}/tensorflow-notebook'.format(registry, repoName)
+
 c.KubeSpawner.cmd = 'start-singleuser.sh'
 c.KubeSpawner.args = ['--allow-root']
 # gpu images are very large ~15GB. need a large timeout.
 c.KubeSpawner.start_timeout = 60 * 30
 # Increase timeout to 5 minutes to avoid HTTP 500 errors on JupyterHub
 c.KubeSpawner.http_timeout = 60 * 5
+
+# Volume setup
+c.KubeSpawner.singleuser_uid = 1000
+c.KubeSpawner.singleuser_fs_gid = 100
+c.KubeSpawner.singleuser_working_dir = '/home/jovyan'
+
 # override API hostname since it doesn't match the pod name
 c.KubeSpawner.hub_connect_ip = '{{k8s_service_name}}'  # not actually honored :(
 c.KubeSpawner.args.append('--hub-api-url=http://{{k8s_service_name}}:8081/hub/api')
+
+volumes = []
+volume_mounts = []
 
 {% if config['persistent-storage'] -%}
 ###################################################
@@ -108,23 +133,42 @@ c.KubeSpawner.user_storage_capacity = '{{config['persistent-storage']}}'
 c.KubeSpawner.storage_class = '{{config['storage-class']}}'
 {%- endif %}
 c.KubeSpawner.pvc_name_template = 'claim-{username}{servername}'
-c.KubeSpawner.volumes = [
-  {
-    'name': 'volume-{username}{servername}',
-    'persistentVolumeClaim': {
-      'claimName': 'claim-{username}{servername}'
+volumes.append(
+    {
+        'name': 'volume-{username}{servername}',
+        'persistentVolumeClaim': {
+            'claimName': 'claim-{username}{servername}'
+        }
     }
-  }
-]
-c.KubeSpawner.volume_mounts = [
+)
+volume_mounts.append(
   {
-    'mountPath': '/home/jovyan/work',
+    'mountPath': '/home/jovyan',
     'name': 'volume-{username}{servername}'
   }
-]
-# set the group to "users" ("jovyan" doesn't exist)
-c.KubeSpawner.singleuser_fs_gid = 100
+)
 {%- endif %}
+
+# ###################################################
+# ### Extra volumes for NVIDIA drivers (Azure)
+# ###################################################
+# # Temporary fix:
+# # AKS / acs-engine doesn't yet use device plugin so we have to mount the drivers to use GPU
+# # TODO(wbuchwalter): Remove once device plugin is merged
+if cloud == 'aks' or cloud == 'acsengine':
+    volumes.append({
+        'name': 'nvidia',
+        'hostPath': {
+            'path': '/usr/local/nvidia'
+        }
+    })
+    volume_mounts.append({
+        'name': 'nvidia',
+        'mountPath': '/usr/local/nvidia'
+    })
+
+c.KubeSpawner.volumes = volumes
+c.KubeSpawner.volume_mounts = volume_mounts
 
 ######## Authenticator ######
 c.JupyterHub.authenticator_class = 'dummyauthenticator.DummyAuthenticator'

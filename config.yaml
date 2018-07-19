@@ -14,3 +14,14 @@ options:
     description: |
       Storage class name to use instead of the default storage class
       when creating PVCs per the 'persistent-storage' option.
+  notebook-registry:
+    type: string
+    default: 'gcr.io'
+    description: |
+      Image registry for notebook images.
+  notebook-repo-name:
+    type: string
+    default: 'kubeflow-images-public'
+    description: |
+      Repo name on the registry which contains the TensorFlow Notebook
+      images.
