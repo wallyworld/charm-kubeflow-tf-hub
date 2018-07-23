@@ -17,3 +17,7 @@ tags:
   - kubeflow
 series:
   - kubernetes
+resources:
+  jupyterhub-image:
+    type: docker
+    description: 'Image used for JupyterHub'
