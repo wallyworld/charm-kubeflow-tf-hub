@@ -1,5 +1,5 @@
 options:
-  persistent-storage:
+  notebook-storage-size:
     type: string
     default: ''
     description: |
@@ -8,18 +8,19 @@ options:
       will attach 10 gigabytes of storage to each notebook.  This requires
       a storage class to be defined, and if the 'storage-class' option is
       not set, a storage class to be marked as default.
-  storage-class:
+  notebook-storage-class:
     type: string
     default: ''
     description: |
       Storage class name to use instead of the default storage class
-      when creating PVCs per the 'persistent-storage' option.
-  notebook-registry:
+      when creating PVCs per the 'notebook-storage-size' option.
+      (This option currently doesn't work.  See issue 1).
+  notebook-image-registry:
     type: string
     default: 'gcr.io'
     description: |
       Image registry for notebook images.
-  notebook-repo-name:
+  notebook-image-repo-name:
     type: string
     default: 'kubeflow-images-public'
     description: |

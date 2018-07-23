@@ -5,7 +5,6 @@ from charmhelpers.core import hookenv
 from charmhelpers.core import unitdata
 from charms.reactive import set_flag
 from charms.reactive import when, when_not
-from charms.templating.jinja2 import render
 
 from charms import layer
 from charms.layer.basic import pod_spec_set
@@ -35,19 +34,11 @@ def get_image():
 def start_charm():
     layer.status.maintenance('configuring container')
 
-    charm_config = hookenv.config()
+    config = hookenv.config()
     image_info = unitdata.kv().get('charm.kubeflow-tf-hub.image-info')
-
-    config_src = Path('files/jupyterhub_config.py')
-    config_dst = Path('/etc/config/jupyterhub_config.py')
-    # we have to explicitly specify the k8s service name for use in the API
-    # URL because otherwise JupyterHub uses the pod name, which in our case
-    # doesn't just happen to match the service name; the k8s service name
-    # will always be the application name with a "juju-" prefix
     application_name = hookenv.service_name()
-    config_data = render(template=config_src.read_text(), context={
-        'k8s_service_name': 'juju-{}'.format(application_name),
-    })
+    jh_config_src = Path('files/jupyterhub_config.py')
+    jh_config_dst = Path('/etc/config/jupyterhub_config.py')
 
     pod_spec_set(yaml.dump({
         'containers': [
@@ -61,7 +52,7 @@ def start_charm():
                 'command': [
                     'jupyterhub',
                     '-f',
-                    str(config_dst),
+                    str(jh_config_dst),
                 ],
                 'ports': [
                     {
@@ -74,16 +65,24 @@ def start_charm():
                     },
                 ],
                 'config': {
+                    # we have to explicitly specify the k8s service name for
+                    # use in the API URL because otherwise JupyterHub uses the
+                    # pod name, which in our case doesn't just happen to match
+                    # the service name; the k8s service name will always be the
+                    # application name with a "juju-" prefix
+                    'K8S_SERVICE_NAME': 'juju-{}'.format(application_name),
+                    'NOTEBOOK_STORAGE_SIZE': config['notebook-storage-size'],
+                    'NOTEBOOK_STORAGE_CLASS': config['notebook-storage-class'],
                     'CLOUD': '',  # is there a way to detect this?
-                    'REGISTRY': charm_config['notebook-registry'],
-                    'REPO_NAME': charm_config['notebook-repo'],
+                    'REGISTRY': config['notebook-image-registry'],
+                    'REPO_NAME': config['notebook-image-repo-name'],
                 },
                 'files': [
                     {
                         'name': 'configs',
-                        'mountPath': str(config_dst.parent),
+                        'mountPath': str(jh_config_dst.parent),
                         'files': {
-                            'jupyterhub_config.py': config_data,
+                            'jupyterhub_config.py': jh_config_src.read_text(),
                         },
                     },
                 ],

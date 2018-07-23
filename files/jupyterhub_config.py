@@ -98,6 +98,7 @@ c.JupyterHub.cleanup_servers = False
 ###################################################
 # Spawner Options
 ###################################################
+k8s_service_name = os.environ.get('K8S_SERVICE_NAME')
 cloud = os.environ.get('CLOUD_NAME')
 registry = os.environ.get('REGISTRY')
 repoName = os.environ.get('REPO_NAME')
@@ -117,37 +118,38 @@ c.KubeSpawner.singleuser_fs_gid = 100
 c.KubeSpawner.singleuser_working_dir = '/home/jovyan'
 
 # override API hostname since it doesn't match the pod name
-c.KubeSpawner.hub_connect_ip = '{{k8s_service_name}}'  # not actually honored :(
-c.KubeSpawner.args.append('--hub-api-url=http://{{k8s_service_name}}:8081/hub/api')
+c.KubeSpawner.hub_connect_ip = k8s_service_name  # not actually honored :(
+c.KubeSpawner.args.append('--hub-api-url=http://{}:8081/hub/api'.format(k8s_service_name))
 
 volumes = []
 volume_mounts = []
 
-{% if config['persistent-storage'] -%}
 ###################################################
 ### Persistent volume options
 ###################################################
-c.KubeSpawner.user_storage_pvc_ensure = True
-c.KubeSpawner.user_storage_capacity = '{{config['persistent-storage']}}'
-{% if config['storage-class'] -%}
-c.KubeSpawner.storage_class = '{{config['storage-class']}}'
-{%- endif %}
-c.KubeSpawner.pvc_name_template = 'claim-{username}{servername}'
-volumes.append(
-    {
-        'name': 'volume-{username}{servername}',
-        'persistentVolumeClaim': {
-            'claimName': 'claim-{username}{servername}'
+notebook_storage_size = os.environ.get('NOTEBOOK_STORAGE_SIZE')
+notebook_storage_class = os.environ.get('NOTEBOOK_STORAGE_CLASS')
+if notebook_storage_size:
+    c.KubeSpawner.user_storage_pvc_ensure = True
+    c.KubeSpawner.user_storage_capacity = notebook_storage_size
+    if notebook_storage_class:
+        # this doesn't seem to be honored :(
+        c.KubeSpawner.storage_class = notebook_storage_class
+    c.KubeSpawner.pvc_name_template = 'claim-{username}{servername}'
+    volumes.append(
+        {
+            'name': 'volume-{username}{servername}',
+            'persistentVolumeClaim': {
+                'claimName': 'claim-{username}{servername}'
+            }
         }
-    }
-)
-volume_mounts.append(
-  {
-    'mountPath': '/home/jovyan',
-    'name': 'volume-{username}{servername}'
-  }
-)
-{%- endif %}
+    )
+    volume_mounts.append(
+      {
+        'mountPath': '/home/jovyan',
+        'name': 'volume-{username}{servername}'
+      }
+    )
 
 # ###################################################
 # ### Extra volumes for NVIDIA drivers (Azure)
