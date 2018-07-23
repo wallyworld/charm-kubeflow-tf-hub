@@ -16,12 +16,14 @@ def get_image():
     layer.status.maintenance('fetching container image')
     try:
         image_info_filename = hookenv.resource_get('jupyterhub-image')
-        if image_info_filename:
-            raise ValueError()
+        if not image_info_filename:
+            raise ValueError('no filename returned for resource')
         image_info = yaml.safe_load(Path(image_info_filename).read_text())
         if not image_info:
-            raise ValueError()
-    except Exception:
+            raise ValueError('no data returned for resource')
+    except Exception as e:
+        hookenv.log('unable to fetch container image: {}'.format(e),
+                    level=hookenv.ERROR)
         layer.status.blocked('unable to fetch container image')
     else:
         unitdata.kv().set('charm.kubeflow-tf-hub.image-info', image_info)
