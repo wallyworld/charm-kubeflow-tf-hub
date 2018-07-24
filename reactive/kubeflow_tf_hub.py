@@ -5,7 +5,6 @@ from charms.reactive import set_flag
 from charms.reactive import when, when_not
 
 from charms import layer
-from charms.layer.basic import pod_spec_set
 
 
 @when_not('layer.docker-resource.jupyterhub-image.fetched')
@@ -24,7 +23,7 @@ def start_charm():
     jh_config_src = Path('files/jupyterhub_config.py')
     jh_config_dst = Path('/etc/config/jupyterhub_config.py')
 
-    pod_spec_set({
+    layer.caas_base.pod_spec_set({
         'containers': [
             {
                 'name': 'tf-hub',
