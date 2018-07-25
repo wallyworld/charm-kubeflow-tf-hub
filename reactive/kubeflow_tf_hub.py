@@ -56,7 +56,7 @@ def start_charm():
                     'K8S_SERVICE_NAME': 'juju-{}'.format(application_name),
                     'NOTEBOOK_STORAGE_SIZE': config['notebook-storage-size'],
                     'NOTEBOOK_STORAGE_CLASS': config['notebook-storage-class'],
-                    'CLOUD': '',  # is there a way to detect this?
+                    'CLOUD_NAME': '',  # is there a way to detect this?
                     'REGISTRY': config['notebook-image-registry'],
                     'REPO_NAME': config['notebook-image-repo-name'],
                 },
