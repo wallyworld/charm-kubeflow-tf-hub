@@ -173,4 +173,9 @@ c.KubeSpawner.volumes = volumes
 c.KubeSpawner.volume_mounts = volume_mounts
 
 ######## Authenticator ######
-c.JupyterHub.authenticator_class = 'dummyauthenticator.DummyAuthenticator'
+authenticator = os.environ.get('AUTHENTICATOR')
+if authenticator == "iap":
+    c.JupyterHub.authenticator_class = 'jhub_remote_user_authenticator.remote_user_auth.RemoteUserAuthenticator'
+    c.RemoteUserAuthenticator.header_name = 'x-goog-authenticated-user-email'
+else:
+    c.JupyterHub.authenticator_class = 'dummyauthenticator.DummyAuthenticator'

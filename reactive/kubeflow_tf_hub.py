@@ -54,6 +54,7 @@ def start_charm():
                     # the service name; the k8s service name will always be the
                     # application name with a "juju-" prefix
                     'K8S_SERVICE_NAME': 'juju-{}'.format(application_name),
+                    'AUTHTENTICATOR': config['authenticator'],
                     'NOTEBOOK_STORAGE_SIZE': config['notebook-storage-size'],
                     'NOTEBOOK_STORAGE_CLASS': config['notebook-storage-class'],
                     'CLOUD_NAME': '',  # is there a way to detect this?
