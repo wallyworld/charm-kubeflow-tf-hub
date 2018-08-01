@@ -21,3 +21,4 @@ resources:
   jupyterhub-image:
     type: docker
     description: 'Image used for JupyterHub'
+    auto-fetch: true

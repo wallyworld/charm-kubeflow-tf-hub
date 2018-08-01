@@ -7,11 +7,6 @@ from charms.reactive import when, when_not
 from charms import layer
 
 
-@when_not('layer.docker-resource.jupyterhub-image.fetched')
-def fetch_image():
-    layer.docker_resource.fetch('jupyterhub-image')
-
-
 @when('layer.docker-resource.jupyterhub-image.available')
 @when_not('charm.kubeflow-tf-hub.started')
 def start_charm():
