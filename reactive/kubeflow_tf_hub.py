@@ -1,10 +1,16 @@
 from pathlib import Path
 
 from charmhelpers.core import hookenv
-from charms.reactive import set_flag
-from charms.reactive import when, when_not
+from charms.reactive import set_flag, clear_flag
+from charms.reactive import when, when_not, when_any
 
 from charms import layer
+
+
+@when_any('layer.docker-resource.jupyterhub-image.changed',
+          'config.change')
+def update_image():
+    clear_flag('charm.kubeflow-tf-hub.started')
 
 
 @when('layer.docker-resource.jupyterhub-image.available')

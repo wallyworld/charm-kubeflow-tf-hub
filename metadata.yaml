@@ -19,6 +19,6 @@ series:
   - kubernetes
 resources:
   jupyterhub-image:
-    type: docker
+    type: oci-image
     description: 'Image used for JupyterHub'
     auto-fetch: true
